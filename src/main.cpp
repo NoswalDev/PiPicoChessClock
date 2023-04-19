@@ -29,26 +29,29 @@
   Code:
     write in single core and then allocate graphics processing to secondary core.
   Battery indicator
-  VFD 256 x 50
-  Display and PCB produces heat
-  Recommended 5V 2.3A supply (based on other pcb design) for continuous full brightness all pixels lit
+  VFD 256 x 50 GP1287BI
+  Display and PCB produces heat, need temperature compensation
+  IP5310 Recommended 5V 2.3A supply (based on other pcb design) for continuous full brightness all pixels lit
   Do menu setup until display arrives
 */
 
 #include <Arduino.h>
-#include <SPI.h>
+#include <Wire.h>
 #include <U8g2lib.h>
+#include <pico/stdlib.h>
 
 
 /* Constructor */
 // U8G2_GP1287AI_256X50_F_4W_HW_SPI vfd(U8G2_R0, cs, dc [, reset]);
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C dsp(U8G2_R0, U8X8_PIN_NONE);
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C dsp(U8G2_R0,U8X8_PIN_NONE);
+//VCOMH0
 
-// #define SDA 0
-// #define SCL 1
-#define GPIO_MIN 0
-#define GPIO_PLU 1
-#define GPIO_O 2
+#define SDA_PIN 4
+#define SCL_PIN 5
+#define MIN_PIN 0
+#define PLS_PIN 1
+#define MENU_PIN 2
+#define RLY_PIN 8
 
 //display stuff
 #define dspwd 128
@@ -70,6 +73,12 @@ uint8_t vtile = 0;
 uint8_t htile = 0;
 uint8_t etile = 0;
 uint8_t ftile = 0;
+
+//rtc
+datetime_t t = {0,0,0,0,0,0,0};
+// absolute_time_t at = 0;
+char datetime_buf[256];
+char *datetime_str = &datetime_buf[0];
 
 void runBootAnimation(){
   //disc
@@ -104,7 +113,7 @@ void runBootAnimation(){
     dsp.updateDisplayArea(htile, 0, etile-htile+1, tilecnty);
   }
   //scan
-  etile = 0;
+  etile = tilecntx>>1;
   for(int i = 0; i <=anifps*ratio; i++){
     dsp.clearBuffer();
     drawn = (sq(i/(float)anifps/ratio)*dspctrx);
@@ -121,30 +130,41 @@ void runBootAnimation(){
   }
 }
 
+
+void irq01(uint gpio, uint32_t events) //the parameters just need to be there. let's you figure out where the call is coming from.
+{
+  dsp.clearBuffer();
+  dsp.drawStr(0,32,"pressed");
+  dsp.sendBuffer();
+}
+
+
 void setup() {
   //button setups
-  pinMode(GPIO_MIN, INPUT_PULLUP);
-  pinMode(GPIO_PLU, INPUT_PULLUP);
-  pinMode(GPIO_O, INPUT_PULLUP);
+  // pinMode(GPIO_MIN, INPUT_PULLUP);
+  // pinMode(GPIO_PLU, INPUT_PULLUP);
+  // pinMode(GPIO_O, INPUT_PULLUP);
+  gpio_init(MIN_PIN); //also sets function to SIO and disables output (set to input)
+  // gpio_set_dir(MIN_PIN, false); //not needed with gpio_init()
+  //gpio_set_dir_masked(); //set all gpios at once
+  gpio_pull_up(MIN_PIN);
+  /*irq handler notes
+    gpio_add_raw_irq_handler() //adds additional irq handlers independent of default.
+    gpio_acknowledge_irq() //needed for the callback functions
+  */
+  gpio_set_irq_enabled_with_callback(0,GPIO_IRQ_EDGE_FALL,true, irq01);
   //menu setup
-
-
+  dsp.begin();
+  dsp.setDrawColor(1);
+  dsp.setFont(u8g2_font_5x7_tr);
+  
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-}
-void setup1() {
-  // vfd.begin();
-  dsp.begin();
-  dsp.setDrawColor(1);
-}
-
-void loop1() {
   dsp.clearBuffer();
   dsp.sendBuffer();
-  delay(1000);
+  delay(2000);
   // startAnimation();
   runBootAnimation();
-  delay(1000);
 }
