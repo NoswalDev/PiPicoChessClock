@@ -156,26 +156,20 @@ void runBootAnimation(){
 
 void irq01(uint gpio, uint32_t events) //the parameters just need to be there. let's you figure out where the call is coming from.
 {
-  
-  if(flag){
-    xosc_disable();
-    flag = false;
-  }
-  else{
-    xosc_init();
-    flag = true;
-  }
-  
+  gpio_xor_mask(0b100);
+}
+void debounce(uint8_t gpio, uint32_t events){
+
 }
 
 void start_clocks(){
   clocks_init();
-  // xosc_init();
-  // clock_configure(clk_rtc,
-  //                   0, // No GLMUX
-  //                   CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_XOSC_CLKSRC,
-  //                   XOSC_MHZ * MHZ,
-  //                   46875);
+  clock_configure(clk_rtc,
+                    0, // No GLMUX
+                    CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_XOSC_CLKSRC,
+                    XOSC_MHZ * MHZ,
+                    46875);
+  xosc_init();
   rtc_init();
   rtc_set_datetime(&t);
   sleep_us(64);
@@ -193,7 +187,22 @@ void setup() {
     gpio_add_raw_irq_handler() //adds additional irq handlers independent of default.
     gpio_acknowledge_irq() //needed for the callback functions
   */
+  gpio_init(2);
+  gpio_set_dir(2,true);
   gpio_set_irq_enabled_with_callback(0,GPIO_IRQ_EDGE_FALL,true, irq01);
+  //debounce
+  //add pio to constantly poll button states and then send interrupt when it happens.
+  //http://www.ganssle.com/debouncing-pt2.htm
+  /*
+  //called by timer interrupt:
+  //raw_key_pressed() reads key state from hardware
+
+  bool_t debounce_switch(){
+    static uint16_t state = 0; //current debounce status
+    state = (state<<1) | !raw_key_pressed() | 0xe00;
+    return state==0xf000;
+  }
+  */
 
   //rtc
   start_clocks();
