@@ -33,6 +33,10 @@
   Display and PCB produces heat, need temperature compensation
   IP5310 Recommended 5V 2.3A supply (based on other pcb design) for continuous full brightness all pixels lit
   Do menu setup until display arrives
+  Button event handling
+  startup sequence
+  shutdown sequence
+  
 */
 
 #include <Arduino.h>
@@ -62,8 +66,9 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C dsp(U8G2_R0,U8X8_PIN_NONE);
 
 //display stuff
 #define dspwd 128
-#define dspht 64
+#define dspht 50
 #define anifps 10
+#define font u8g2_font_profont11_mr
 
 uint8_t scale = min(dspwd,dspht)>>4;
 uint8_t ratio = 1; //dspwd/dspht;
@@ -96,7 +101,43 @@ datetime_t t = {0,1,1,0,0,0,0};
 char datetime_buf[256];
 char *datetime_str = &datetime_buf[0];
 
-bool flag = false;
+
+/* Menu Tree
+Splash
++
+  Bullet: less than 3 minutes per player
+> Blitz: between 3 to 10 minutes per player
+  Rapid: longer than 10 minutes per player
+  Custom Mode: set a custom time control
+-
+
+Selected
+  Bullet: less than 3 minutes per player
+  Blitz: between 3 to 10 minutes per player
+              v
+  Rapid: - 10m|0s 15m|10s 30m|0s 10m|5s 20m|0s 60m|0s +
+              ^
+  Custom Mode: set a custom time control
+
+Custom Mode
++
+  Asymmetric time control: enabled
+  Left side time:
+  Left side delay:
+  Right side time:
+  Right side delay:
+  ...
+  Asymmetric time control: disabled
+> Main time: 0h 10m 00s
+  Delay time: 0 seconds
+  Delay type: off, simple, Bronstein delay, Fischer increment
+  Start
+  Back
+-
+*/
+//scrollbar
+
+
 
 void runBootAnimation(){
   //need to add framepacing
@@ -153,14 +194,13 @@ void runBootAnimation(){
 }
 
 
+// void irq01(uint gpio, uint32_t events) //the parameters just need to be there. let's you figure out where the call is coming from.
+// {
+//   gpio_set_irq_enabled(0,GPIO_IRQ_EDGE_FALL,false);
+//   gpio_xor_mask(0b100);
+//   gpio_set_irq_enabled(0,GPIO_IRQ_EDGE_FALL,true);
+// }
 
-void irq01(uint gpio, uint32_t events) //the parameters just need to be there. let's you figure out where the call is coming from.
-{
-  gpio_xor_mask(0b100);
-}
-void debounce(uint8_t gpio, uint32_t events){
-
-}
 
 void start_clocks(){
   clocks_init();
@@ -179,49 +219,39 @@ void start_clocks(){
 
 void setup() {
   //button setups
-  gpio_init(MIN_PIN); //also sets function to SIO and disables output (set to input)
+  gpio_init(2); //also sets function to SIO
   // gpio_set_dir(MIN_PIN, false); //not needed with gpio_init()
   //gpio_set_dir_masked(); //set all gpios at once
-  gpio_pull_up(MIN_PIN);
+  gpio_set_dir(2,true);
+  gpio_put(2,true);
+  gpio_init(0);
+  gpio_set_dir(0,false);
+  gpio_pull_up(0);
+
   /*irq handler notes
     gpio_add_raw_irq_handler() //adds additional irq handlers independent of default.
     gpio_acknowledge_irq() //needed for the callback functions
   */
-  gpio_init(2);
-  gpio_set_dir(2,true);
-  gpio_set_irq_enabled_with_callback(0,GPIO_IRQ_EDGE_FALL,true, irq01);
-  //debounce
-  //add pio to constantly poll button states and then send interrupt when it happens.
-  //http://www.ganssle.com/debouncing-pt2.htm
-  /*
-  //called by timer interrupt:
-  //raw_key_pressed() reads key state from hardware
-
-  bool_t debounce_switch(){
-    static uint16_t state = 0; //current debounce status
-    state = (state<<1) | !raw_key_pressed() | 0xe00;
-    return state==0xf000;
-  }
-  */
+  // gpio_set_irq_enabled_with_callback(0,GPIO_IRQ_EDGE_FALL,true, irq01);
 
   //rtc
-  start_clocks();
+  // start_clocks();
 
   //menu setup
   dsp.begin();
   dsp.setDrawColor(1);
-  dsp.setFont(u8g2_font_5x7_tr);
+  dsp.setFont(font);
   runBootAnimation();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  dsp.clearBuffer();
-  if(rtc_running()){
-    rtc_get_datetime(&t);
-    datetime_to_str(datetime_str, sizeof(datetime_buf), &t);
-    dsp.drawStr(0,32,datetime_str);
-  }
-  dsp.sendBuffer();
-  delay(100);
+  // dsp.clearBuffer();
+  // if(rtc_running()){
+  //   rtc_get_datetime(&t);
+  //   datetime_to_str(datetime_str, sizeof(datetime_buf), &t);
+  //   dsp.drawStr(0,32,datetime_str);
+  // }
+  // dsp.sendBuffer();
+  // delay(100);
 }
