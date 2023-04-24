@@ -102,7 +102,7 @@ char datetime_buf[256];
 char *datetime_str = &datetime_buf[0];
 
 
-/* Menu Tree
+/* Menu Interface
 Splash
 +
   Bullet: less than 3 minutes per player
@@ -136,7 +136,19 @@ Custom Mode
 -
 */
 //scrollbar
-
+/* Menu data structure
+  Menu
+    MenuNode
+      MenuNode
+    Bullet
+    Blitz
+    Rapid -> draw presets screen
+      Preset1
+      Preset2
+      Preset3 -> start game with parameters
+    Custom -> draw custom match settings screen
+      
+*/
 
 
 void runBootAnimation(){
