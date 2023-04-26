@@ -17,9 +17,10 @@
       Time at move X
       Time at move X
   Time types:
-    Simple Time Delay: time added at start of move, but unused time is not kept.
-    Bronstein Time Delay: time added after move up to time spent, but less than the delay set. Mathematically equivalent to Simple Time Delay.
-    Fischer Increment: time added at start of move and unused time is kept.
+    Simple Delay: time added at start of move, but unused time is not kept.
+    Bronstein Delay: time added after move up to time spent, but less than the delay set. Mathematically equivalent to Simple Time Delay.
+    Fischer Increment: time added at start of move including unused time.
+    Simple Increment: time added after move including unused time.
   Program flags:
     Main time:
     Delay time:
@@ -109,6 +110,7 @@ Splash
 > Blitz: between 3 to 10 minutes per player
   Rapid: longer than 10 minutes per player
   Custom Mode: set a custom time control
+  Settings
 -
 
 Selected
@@ -118,6 +120,7 @@ Selected
   Rapid: - 10m|0s 15m|10s 30m|0s 10m|5s 20m|0s 60m|0s +
               ^
   Custom Mode: set a custom time control
+  Settings
 
 Custom Mode
 +

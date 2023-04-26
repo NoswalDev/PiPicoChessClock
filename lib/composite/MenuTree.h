@@ -10,22 +10,24 @@ class Menu { // Component
         virtual void setName(const std::string& name_) {
             name = name_;
         }
-        virtual Currency getNetPrice() {
-            return netPrice;
+        virtual void std::string& getDspName() {
+            return dspName;
         }
-        virtual void setNetPrice(Currency netPrice_) {
-            netPrice = netPrice_;
+        virtual void setDspName(std::string& dspName_) {
+            dspName = dspName_;
         }
         // declares an interface for accessing and managing its child components.
         //   virtual void add(std::shared_ptr<Menu>) = 0;
         //   virtual void remove(std::shared_ptr<Menu>) = 0;
+
         virtual ~Menu() = default;
     protected:
-        Menu() :name(""), netPrice(0) {}
-        Menu(const std::string& name_) :name(name_), netPrice(0) {}
+        Menu() :name(""), dspName("") {}
+        Menu(const std::string& name_) :name(name_), dspName(dspName_) {}
     private:
         std::string name;
-        Currency netPrice;
+        std::string dspName;
+        
 };
 
 // defines behavior for components having children.
@@ -45,9 +47,6 @@ class MenuHub : public Menu { // Composite
         virtual void remove(std::shared_ptr<Menu> Menu_) { //override at the end
             Menu.remove(Menu_.get());
         }
-        virtual void setDelay(uint8_t& delay_){
-            delay = delay_;
-        }
     protected:
         MenuHub() :Menu() {}
         MenuHub(const std::string& name_) :Menu() {
@@ -56,9 +55,8 @@ class MenuHub : public Menu { // Composite
     private:
         // stores child components.
         std::list<Menu*> Menu;
-        uint8_t delay;
+        
 };
-
 
 // represents leaf objects in the composition.
 class MenuItem : public Menu { // Leaf
@@ -66,14 +64,17 @@ class MenuItem : public Menu { // Leaf
         MenuItem(const std::string& name_) {
             setName(name_);
         }
-        void setTime(null time_){
+        void setTime(null time_){ //set time in seconds
             time = time_;
         }
         void setDelay(uint8_t delay_){
             delay = delay_;
         }
-        void setInterval(bool interval_){
+        void keepDelay(bool interval_){ //bool to indicate if delay is 'delay' or 'interval'
             interval = interval_;
+        }
+        void delayBefore(bool delayBefore_){
+            delayBefore = delayBefore_
         }
     // A leaf has no children.
     //   void add(std::shared_ptr<Menu>) override {
@@ -87,11 +88,40 @@ class MenuItem : public Menu { // Leaf
         uint8_t delay;
         null time;
         bool interval;
+        bool delayBefore;
 };
+
+class Outline : public Menu { //overseer. provides gfx info to draw overview.
+    public:
+        Outline(Menu root_){
+            root = root_;
+        }
+    protected:
+    private:
+        Menu root;
+};
+
+
 
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 int main() {
 
+};
+/* outline
+item cursor;
+cursor.visiting(node.Menu[0]); //cursor points to first menuitem in the menuhub
+cursor.run(); //cursor activates what it's visiting, which could be a mode or param setting
+cursor.back(); //goes back up to previous hub
+
+visitor cursor{
+    virtual void openNode
+    virtual void 
 }
+
+need overseer object to pull tree info for graphics generation
+initialize tree
+
+
+*/
