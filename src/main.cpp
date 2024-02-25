@@ -54,8 +54,9 @@
 
 
 /* Constructor */
-// U8G2_GP1287AI_256X50_F_4W_HW_SPI vfd(U8G2_R0, cs, dc [, reset]);
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C dsp(U8G2_R0,U8X8_PIN_NONE);
+U8G2_GP1287AI_256X50_F_4W_HW_SPI vfd(U8G2_R0, 5, dc);
+//https://oshwhub.com/XACT/gp1287bi-vfd-xian-shi-mu-kuai
+// U8G2_SSD1306_128X64_NONAME_F_HW_I2C dsp(U8G2_R0,U8X8_PIN_NONE);
 //VCOMH0
 
 #define SDA_PIN 4
@@ -234,14 +235,14 @@ void start_clocks(){
 
 void setup() {
   //button setups
-  gpio_init(2); //also sets function to SIO
+  // gpio_init(2); //also sets function to SIO
   // gpio_set_dir(MIN_PIN, false); //not needed with gpio_init()
   //gpio_set_dir_masked(); //set all gpios at once
-  gpio_set_dir(2,true);
-  gpio_put(2,true);
-  gpio_init(0);
-  gpio_set_dir(0,false);
-  gpio_pull_up(0);
+  // gpio_set_dir(2,true);
+  // gpio_put(2,true);
+  // gpio_init(0);
+  // gpio_set_dir(0,false);
+  // gpio_pull_up(0);
 
   /*irq handler notes
     gpio_add_raw_irq_handler() //adds additional irq handlers independent of default.
